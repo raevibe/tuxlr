@@ -1,0 +1,39 @@
+[package]
+name = "goxlr-audio"
+
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# Common Workspace
+log = { workspace = true }
+anyhow = { workspace = true }
+fancy-regex = { workspace = true }  # Used for Finding Devices
+
+# Symphonia for Audio Decoding.
+symphonia = { version = "0.5.4", features = ["wav", "mp3", "ogg", "flac"] }
+
+# Hound for WAV Encoding.
+hound = "3.5.1"
+
+# Audio Normalisation
+ebur128 = "0.1.10"
+
+# Ring Buffer is now needed on all platforms.
+rb = "0.4.1"
+
+# Under Linux, we'll use PulseAudio to output to the GoXLR..
+# We can't find the specific audio channels using CPAL, so will ask Pulse instead.
+[target.'cfg(target_os = "linux")'.dependencies]
+libpulse-binding = "2.28.1"
+libpulse-simple-binding = "2.28.1"
+
+# Under Other Operating Systems, we'll use CPAL
+[target.'cfg(not(target_os = "linux"))'.dependencies]
+cpal = "0.16.0"
+rubato = "0.16.1"

@@ -1,0 +1,60 @@
+[package]
+name = "tuxlr-engine"
+description = "In-process GoXLR device engine for TuxLR, derived from the GoXLR Utility daemon"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+authors = [
+    "TuxLR contributors",
+    # Original daemon authors (GoXLR Utility):
+    "Nathan Adams <dinnerbone@dinnerbone.com>",
+    "Craig McLure <craig@mclure.net>",
+    "Lars Mühlbauer <lm41@dismail.de>",
+]
+
+[features]
+tts = ["dep:tts"]
+
+[dependencies]
+goxlr-usb = { path = "../../vendor/goxlr-utility/usb" }
+goxlr-ipc = { path = "../../vendor/goxlr-utility/ipc" }
+goxlr-types = { path = "../../vendor/goxlr-utility/types" }
+goxlr-audio = { path = "../../vendor/goxlr-utility/audio" }
+goxlr-profile-loader = { path = "../../vendor/goxlr-utility/profile" }
+goxlr-scribbles = { path = "../../vendor/goxlr-utility/scribbles" }
+
+log = { workspace = true }
+anyhow = { workspace = true }
+strum = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+json-patch = { workspace = true }
+tokio = { workspace = true }
+enumset = { workspace = true }
+enum-map = { workspace = true }
+byteorder = { workspace = true }
+include_dir = { workspace = true }
+cfg-if = { workspace = true }
+lazy_static = { workspace = true }
+fancy-regex = { workspace = true }
+which = { workspace = true }
+nix = { workspace = true, features = ["user"] }
+libc = "0.2"
+
+simplelog = "0.12.2"
+file-rotate = "0.8.0"
+log-panics = { version = "2.1.0", features = ["with-backtrace"] }
+directories = "6.0.0"
+ritelinked = "0.3.2"
+open = "5.3.2"
+chrono = { version = "0.4.42", default-features = false, features = ["clock"] }
+glob = "0.3.3"
+tts = { version = "0.26.3", optional = true }
+notify = "8.2.0"
+sys-locale = "0.3.2"
+reqwest = { workspace = true, features = ["stream", "rustls-tls"] }
+xmltree = "0.11.0"
+futures-util = "0.3.31"
+
+rust-ini = "0.21.0"
+zbus = "5.11.0"

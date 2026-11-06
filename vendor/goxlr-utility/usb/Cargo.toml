@@ -1,0 +1,44 @@
+[package]
+name = "goxlr-usb"
+description = "A direct interface to the TC-Helicon GoXLR & GoXLR Mini via usb."
+categories = ["hardware-support", "api-bindings"]
+
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+goxlr-types = { path = "../types" }
+
+# Common Workspace
+log = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+strum = { workspace = true }
+tokio = { workspace = true }
+enumset = { workspace = true }
+enum-map = { workspace = true }
+byteorder = { workspace = true }
+cfg-if = { workspace = true }
+
+
+# Mac an Linux need libusb
+[target.'cfg(not(windows))'.dependencies]
+rusb = { workspace = true }
+
+# Dependencies specifically for building under Windows
+[target.'cfg(windows)'.dependencies]
+lazy_static = { workspace = true }
+winreg = { workspace = true }
+
+libloading = "0.8.9"
+widestring = "1.2.1"
+windows = { workspace = true, features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_System_Threading",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_Devices_DeviceAndDriverInstallation"
+] }

@@ -1,0 +1,17 @@
+[package]
+name = "goxlr-scribbles"
+
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+# Common Workspace
+log = { workspace = true }
+anyhow = { workspace = true }
+image = { workspace = true }
+
+imageproc = "0.25.0"
+ab_glyph = "0.2.32"

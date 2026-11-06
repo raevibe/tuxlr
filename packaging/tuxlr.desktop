@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=TuxLR
+GenericName=GoXLR Control
+Comment=Control a TC-Helicon GoXLR or GoXLR Mini
+Exec=tuxlr
+Icon=tuxlr
+Terminal=false
+Categories=AudioVideo;Audio;Mixer;
+Keywords=goxlr;mixer;audio;microphone;
+StartupWMClass=tuxlr
