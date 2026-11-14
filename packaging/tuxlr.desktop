@@ -9,3 +9,8 @@ Terminal=false
 Categories=AudioVideo;Audio;Mixer;
 Keywords=goxlr;mixer;audio;microphone;
 StartupWMClass=tuxlr
+Actions=quit;
+
+[Desktop Action quit]
+Name=Quit TuxLR
+Exec=tuxlr --quit

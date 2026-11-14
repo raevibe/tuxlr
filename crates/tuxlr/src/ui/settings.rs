@@ -17,7 +17,10 @@ pub fn show(ui: &mut egui::Ui, bridge: &Bridge, pc: Option<&PageCtx>) {
 
     card(ui, "Application", |ui| {
         let mut autostart = config.autostart_enabled;
-        if ui.checkbox(&mut autostart, "Start TuxLR (minimised) when I log in").changed() {
+        let toggle = ui
+            .checkbox(&mut autostart, "Start TuxLR in the background when I log in")
+            .on_hover_text("No window or taskbar entry. Open TuxLR from your app menu to show the window.");
+        if toggle.changed() {
             bridge.send_daemon(DaemonCommand::SetAutoStartEnabled(autostart));
         }
         widgets::row(ui, "Log level", |ui| {

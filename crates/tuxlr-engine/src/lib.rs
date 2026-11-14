@@ -178,6 +178,11 @@ impl EngineHandle {
         self.patch_tx.subscribe()
     }
 
+    /// Ask the GUI to show its window (used when TuxLR is launched a second time).
+    pub fn raise_ui(&self) {
+        let _ = self.ui_tx.send(UiEvent::Raise);
+    }
+
     pub fn subscribe_ui(&self) -> broadcast::Receiver<UiEvent> {
         self.ui_tx.subscribe()
     }
@@ -189,17 +194,29 @@ pub struct InstanceLock {
 }
 
 pub fn acquire_instance_lock() -> Result<InstanceLock> {
-    let dir = std::env::var_os("XDG_RUNTIME_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(std::env::temp_dir);
-    let path = dir.join("tuxlr.lock");
+    match try_acquire_instance_lock()? {
+        Some(lock) => Ok(lock),
+        None => bail!("TuxLR is already running."),
+    }
+}
+
+/// Like [`acquire_instance_lock`], but returns `Ok(None)` when another TuxLR holds the lock.
+pub fn try_acquire_instance_lock() -> Result<Option<InstanceLock>> {
+    let path = runtime_dir().join("tuxlr.lock");
     let file = File::create(&path).with_context(|| format!("Unable to create {path:?}"))?;
     // SAFETY: flock is called with a valid, owned file descriptor.
     let result = unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) };
     if result != 0 {
-        bail!("TuxLR is already running.");
+        return Ok(None);
     }
-    Ok(InstanceLock { _file: file })
+    Ok(Some(InstanceLock { _file: file }))
+}
+
+/// Per-user runtime directory (`$XDG_RUNTIME_DIR`, falling back to the temp dir).
+pub fn runtime_dir() -> PathBuf {
+    std::env::var_os("XDG_RUNTIME_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(std::env::temp_dir)
 }
 
 /// Returns true if the upstream GoXLR Utility daemon appears to be running.

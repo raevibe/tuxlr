@@ -20,7 +20,7 @@ interface. See [NOTICE.md](NOTICE.md) for full attribution and the list of chang
 | **Lighting** | Set the global colour, fader styles and colours, button on/off colours, and animations (on supported firmware) |
 | **Effects** | Full GoXLR only: effect presets, reverb, echo, pitch, gender, megaphone, robot, and hard tune |
 | **Profiles** | Load, save, save-as, and create device profiles and mic profiles from the top bar |
-| **Settings** | Start on login, log level, data folders, restore default profiles, and device/firmware info |
+| **Settings** | Start in the background on login, log level, data folders, restore default profiles, and device/firmware info |
 
 TuxLR also applies the GoXLR Utility's sleep/wake and shutdown handling, so the device is set
 correctly when your PC suspends or TuxLR quits.
@@ -66,8 +66,22 @@ steps on screen.
 ## Usage
 
 ```
-tuxlr [--minimised] [--log-level off|error|warn|info|debug|trace]
+tuxlr [--minimised] [--quit] [--log-level off|error|warn|info|debug|trace]
 ```
+
+### Running in the background
+
+TuxLR has no tray icon. Instead, `tuxlr --minimised` runs it in the background with no window
+and no taskbar entry, and the engine keeps managing your GoXLR (sleep/wake, shutdown commands).
+The **Start TuxLR in the background when I log in** setting starts it this way.
+
+- **Open the window:** launch TuxLR again from your app menu (or run `tuxlr`). The running copy
+  opens its window instead of starting a second one.
+- **Close the window:** TuxLR goes back to the background.
+- **Quit:** click **Quit TuxLR** at the bottom of the sidebar, choose **Quit TuxLR** from the
+  launcher's right-click menu, or run `tuxlr --quit`.
+
+When started without `--minimised`, closing the window quits TuxLR, as before.
 
 | Path | Contents |
 |---|---|
@@ -89,7 +103,7 @@ vendor/goxlr-utility/  Unmodified GoXLR Utility library crates (usb, types, ipc,
 
 - A sampler page (the engine supports it; there's no UI for it yet)
 - Firmware updates (use the official tools for now)
-- A tray icon, and per-parameter advanced effect controls (reverb decay, robot EQ, …)
+- Per-parameter advanced effect controls (reverb decay, robot EQ, …)
 
 ## License
 

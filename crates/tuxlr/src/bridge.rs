@@ -30,6 +30,19 @@ pub struct Bridge {
     pending: Arc<Mutex<Vec<(String, Request)>>>,
     wake: mpsc::UnboundedSender<()>,
     mic_serial: Arc<Mutex<Option<String>>>,
+    /// Pollers tied to this window's egui context. Aborted when the window closes, so
+    /// reopening the window (background mode) doesn't pile up duplicate tasks.
+    pollers: Vec<tokio::task::JoinHandle<()>>,
+}
+
+impl Drop for Bridge {
+    fn drop(&mut self) {
+        // The command sender isn't aborted: it exits on its own once `wake` is dropped, after
+        // sending anything still queued.
+        for task in &self.pollers {
+            task.abort();
+        }
+    }
 }
 
 impl Bridge {
@@ -38,6 +51,7 @@ impl Bridge {
         let pending: Arc<Mutex<Vec<(String, Request)>>> = Arc::new(Mutex::new(Vec::new()));
         let mic_serial: Arc<Mutex<Option<String>>> = Arc::new(Mutex::new(None));
         let (wake, mut wake_rx) = mpsc::unbounded_channel::<()>();
+        let mut pollers = Vec::new();
 
         // Status poller: refresh on every patch the engine broadcasts, plus a slow heartbeat.
         {
@@ -45,7 +59,7 @@ impl Bridge {
             let shared = shared.clone();
             let ctx = ctx.clone();
             let mut patches = engine.subscribe_patches();
-            rt.spawn(async move {
+            pollers.push(rt.spawn(async move {
                 let mut heartbeat = tokio::time::interval(Duration::from_millis(1000));
                 loop {
                     tokio::select! {
@@ -59,7 +73,7 @@ impl Bridge {
                         ctx.request_repaint();
                     }
                 }
-            });
+            }));
         }
 
         // Mic level meter (~20 fps).
@@ -68,7 +82,7 @@ impl Bridge {
             let shared = shared.clone();
             let mic_serial = mic_serial.clone();
             let ctx = ctx.clone();
-            rt.spawn(async move {
+            pollers.push(rt.spawn(async move {
                 let mut tick = tokio::time::interval(Duration::from_millis(50));
                 loop {
                     tick.tick().await;
@@ -85,7 +99,7 @@ impl Bridge {
                         }
                     }
                 }
-            });
+            }));
         }
 
         // UI events from the engine (window raise / shutdown complete).
@@ -93,7 +107,7 @@ impl Bridge {
             let mut events = engine.subscribe_ui();
             let shared = shared.clone();
             let ctx = ctx.clone();
-            rt.spawn(async move {
+            pollers.push(rt.spawn(async move {
                 while let Ok(event) = events.recv().await {
                     let mut s = shared.lock().unwrap();
                     match event {
@@ -102,7 +116,7 @@ impl Bridge {
                     }
                     ctx.request_repaint();
                 }
-            });
+            }));
         }
 
         // Command sender. Commands are coalesced by key so dragging a slider sends only the
@@ -141,6 +155,7 @@ impl Bridge {
             pending,
             wake,
             mic_serial,
+            pollers,
         }
     }
 

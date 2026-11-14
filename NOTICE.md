@@ -41,7 +41,8 @@ Changes made to the daemon in `crates/tuxlr-engine`:
 - `events.rs`: "open UI" and "activate" requests now raise the TuxLR window, and a
   shutdown event tells the GUI to exit.
 - `platform/linux`: the autostart entry and error dialog titles now say TuxLR.
-- `lib.rs` adds a single-instance lock and a check for a running `goxlr-daemon`.
+- `lib.rs` adds a single-instance lock, a check for a running `goxlr-daemon`, and a way for the
+  GUI to request that its window be shown (used when TuxLR is launched a second time).
 
 All other logic (device handling, profiles, mic profiles, effects, sampler, sleep/wake
 handling) is upstream code, unchanged.

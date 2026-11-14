@@ -9,6 +9,8 @@ mod settings;
 mod theme;
 pub mod widgets;
 
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use eframe::egui::{self, RichText};
@@ -114,6 +116,10 @@ pub struct TuxApp {
     frame: u64,
     screenshot_start: Option<std::time::Instant>,
     screenshot: Option<std::path::PathBuf>,
+    /// Started with --minimised: closing the window leaves TuxLR running in the background.
+    background: bool,
+    /// Set when TuxLR should exit after this window closes (Quit, or the engine stopped).
+    quit: Arc<AtomicBool>,
 }
 
 impl TuxApp {
@@ -122,11 +128,9 @@ impl TuxApp {
         rt: Handle,
         engine: EngineHandle,
         daemon_conflict: bool,
-        start_minimised: bool,
+        background: bool,
+        quit: Arc<AtomicBool>,
     ) -> Self {
-        if start_minimised {
-            cc.egui_ctx.send_viewport_cmd(egui::ViewportCommand::Minimized(true));
-        }
         theme::apply(&cc.egui_ctx);
         Self {
             bridge: Bridge::new(rt, engine, cc.egui_ctx.clone()),
@@ -141,6 +145,8 @@ impl TuxApp {
             screenshot_start: None,
             // Debug aid: TUXLR_SCREENSHOT=out.png [TUXLR_PAGE=mic] saves a frame then exits.
             screenshot: std::env::var_os("TUXLR_SCREENSHOT").map(Into::into),
+            background,
+            quit,
         }
     }
 }
@@ -160,6 +166,7 @@ impl eframe::App for TuxApp {
         };
 
         if shutdown {
+            self.quit.store(true, Ordering::SeqCst);
             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
             return;
         }
@@ -455,6 +462,20 @@ impl TuxApp {
                 }
                 ui.with_layout(egui::Layout::bottom_up(egui::Align::Min), |ui| {
                     ui.add_space(10.0);
+                    let hint = if self.background {
+                        "Stop TuxLR. Closing the window keeps it running in the background."
+                    } else {
+                        "Stop TuxLR (same as closing the window)."
+                    };
+                    let quit = ui.add_sized(
+                        [ui.available_width(), 28.0],
+                        egui::Button::new(RichText::new("Quit TuxLR").weak()).frame(false),
+                    );
+                    if quit.on_hover_text(hint).clicked() {
+                        self.quit.store(true, Ordering::SeqCst);
+                        ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                    }
+                    ui.separator();
                     nav_button(ui, &mut self.page, Page::About);
                     nav_button(ui, &mut self.page, Page::Settings);
                 });
